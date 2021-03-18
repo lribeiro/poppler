@@ -362,7 +362,7 @@ int main(int argc, char *argv[])
                 textOut->setTextPageBreaks(false);
             }
 
-            if (tsvMode){
+            if (tsvMode) {
                 textOut = new TextOutputDev(nullptr, physLayout, fixedPitch, rawOrder, htmlMeta, discardDiag);
                 if (!textFileName->cmp("-")) {
                     f = stdout;
@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
                 if (f != stdout) {
                     fclose(f);
                 }
-            }else {
+            } else {
                 if ((w == 0) && (h == 0) && (x == 0) && (y == 0)) {
                     doc->displayPages(textOut, firstPage, lastPage, resolution, resolution, 0, true, false, false);
                 } else {
@@ -555,53 +555,61 @@ void printTSVBBox(FILE *f, PDFDoc *doc, TextOutputDev *textOut, int first, int l
     const int metaConf = -1;
     const int wordConf = 100;
 
-    fputs("level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n",f);
-   
+    fputs("level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n", f);
+
     for (int page = first; page <= last; ++page) {
         const double wid = useCropBox ? doc->getPageCropWidth(page) : doc->getPageMediaWidth(page);
         const double hgt = useCropBox ? doc->getPageCropHeight(page) : doc->getPageMediaHeight(page);
-       
-        fprintf(f, "%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%d\t###PAGE###\n",pageLevel, page,flowNum,blockNum,lineNum,wordNum,xMin,yMin,wid, hgt,metaConf);
+
+        fprintf(f, "%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%d\t###PAGE###\n", pageLevel, page, flowNum, blockNum, lineNum, wordNum, xMin, yMin, wid, hgt, metaConf);
         doc->displayPage(textOut, page, resolution, resolution, 0, !useCropBox, useCropBox, false);
 
         for (flow = textOut->getFlows(); flow; flow = flow->getNext()) {
-            //flow->getBBox(&xMin, &yMin, &xMax, &yMax);
-            //fprintf(f, "%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t\n", page,flowNum,blockNum,lineNum,wordNum,xMin,yMin,wid, hgt);
-           
-           
+            // flow->getBBox(&xMin, &yMin, &xMax, &yMax);
+            // fprintf(f, "%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t\n", page,flowNum,blockNum,lineNum,wordNum,xMin,yMin,wid, hgt);
+
             for (blk = flow->getBlocks(); blk; blk = blk->getNext()) {
                 blk->getBBox(&xMin, &yMin, &xMax, &yMax);
-                fprintf(f, "%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%d\t###FLOW###\n",blockLevel, page,flowNum,blockNum,lineNum,wordNum,xMin,yMin,xMax-xMin,yMax-yMin,metaConf);
-                
+                fprintf(f, "%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%d\t###FLOW###\n", blockLevel, page, flowNum, blockNum, lineNum, wordNum, xMin, yMin, xMax - xMin, yMax - yMin, metaConf);
+
                 for (line = blk->getLines(); line; line = line->getNext()) {
-                    
-                     double lxMin = 1E+37, lyMin = 1E+37;
-                     double lxMax = 0, lyMax = 0;
-                     GooString *lineWordsBuffer = new GooString();
-                   
+
+                    double lxMin = 1E+37, lyMin = 1E+37;
+                    double lxMax = 0, lyMax = 0;
+                    GooString *lineWordsBuffer = new GooString();
+
                     for (word = line->getWords(); word; word = word->getNext()) {
                         word->getBBox(&xMin, &yMin, &xMax, &yMax);
-                        if (lxMin > xMin) { lxMin = xMin ;}
-                        if (lxMax < xMax) { lxMax = xMax ;}
-                        if (lyMin > yMin) { lyMin = yMin ;}
-                        if (lyMax < yMax) { lyMax = yMax ;}
-                     
-                        lineWordsBuffer->appendf("{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:d}\t{5:d}\t{6:.2f}\t{7:.2f}\t{8:.2f}\t{9:.2f}\t{10:d}\t{11:t}\n",wordLevel, page,flowNum,blockNum,lineNum,wordNum,xMin,yMin,xMax-xMin,yMin-yMax,wordConf, word->getText());
-                        wordNum ++;
-                     }
+                        if (lxMin > xMin) {
+                            lxMin = xMin;
+                        }
+                        if (lxMax < xMax) {
+                            lxMax = xMax;
+                        }
+                        if (lyMin > yMin) {
+                            lyMin = yMin;
+                        }
+                        if (lyMax < yMax) {
+                            lyMax = yMax;
+                        }
+
+                        lineWordsBuffer->appendf("{0:d}\t{1:d}\t{2:d}\t{3:d}\t{4:d}\t{5:d}\t{6:.2f}\t{7:.2f}\t{8:.2f}\t{9:.2f}\t{10:d}\t{11:t}\n", wordLevel, page, flowNum, blockNum, lineNum, wordNum, xMin, yMin, xMax - xMin, yMin - yMax,
+                                                 wordConf, word->getText());
+                        wordNum++;
+                    }
 
                     // Print Link Bounding Box info
-                    fprintf(f, "%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%d\t###LINE###\n", lineLevel, page,flowNum,blockNum,lineNum,0,lxMin,lyMin,lxMax-lxMin,lyMax-lyMin,metaConf);
-                    fprintf(f,"%s",lineWordsBuffer->c_str());
+                    fprintf(f, "%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%d\t###LINE###\n", lineLevel, page, flowNum, blockNum, lineNum, 0, lxMin, lyMin, lxMax - lxMin, lyMax - lyMin, metaConf);
+                    fprintf(f, "%s", lineWordsBuffer->c_str());
                     delete lineWordsBuffer;
                     wordNum = 0;
-                    lineNum ++;
+                    lineNum++;
                 }
                 lineNum = 0;
-                blockNum ++;
+                blockNum++;
             }
             blockNum = 0;
-            flowNum ++;
+            flowNum++;
         }
         flowNum = 0;
     }

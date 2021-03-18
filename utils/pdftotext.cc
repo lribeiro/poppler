@@ -67,7 +67,6 @@
 #include <sstream>
 #include <iomanip>
 #include "Win32Console.h"
-#include <float.h>
 
 static void printInfoString(FILE *f, Dict *infoDict, const char *key, const char *text1, const char *text2, const UnicodeMap *uMap);
 static void printInfoDate(FILE *f, Dict *infoDict, const char *key, const char *fmt);
@@ -576,7 +575,7 @@ void printTSVBBox(FILE *f, PDFDoc *doc, TextOutputDev *textOut, int first, int l
                 
                 for (line = blk->getLines(); line; line = line->getNext()) {
                     
-                     double lxMin = DBL_MAX, lyMin = DBL_MAX;
+                     double lxMin = 1E+37, lyMin = 1E+37;
                      double lxMax = 0, lyMax = 0;
                      GooString *lineWordsBuffer = new GooString();
                    
